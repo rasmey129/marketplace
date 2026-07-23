@@ -10,6 +10,7 @@ listings; customers browse nearby, chat in realtime, and send booking requests.
 | --- | --- |
 | `apps/web` | Next.js 16 website (Tailwind v4) |
 | `apps/mobile` | Expo (React Native) iOS/Android app |
+| `apps/streamlit` | Python/Streamlit demo of the marketplace |
 | `packages/shared` | Shared TypeScript types + Supabase query helpers |
 | `supabase/migrations` | Database schema, RLS policies, seed categories |
 
@@ -41,6 +42,24 @@ npm install
 npm run dev:web      # website at http://localhost:3000
 npm run dev:mobile   # Expo dev server (scan QR with Expo Go)
 ```
+
+## Streamlit demo
+
+`apps/streamlit` is a Python app hitting the same Supabase project — a quick
+way to browse/post/message/book without the Next.js or Expo toolchains. It
+does not replace either app; it shares the same database and RLS policies.
+
+```bash
+cd apps/streamlit
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # fill in Supabase URL + anon key
+streamlit run app.py
+```
+
+Known limitations vs. the web/mobile apps: no browser geolocation (enter
+lat/lng manually for "near me"), no file upload (paste photo URLs instead),
+and chat refreshes on interaction rather than via a live Realtime subscription.
 
 ## Notes
 
