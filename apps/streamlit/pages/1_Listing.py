@@ -3,6 +3,7 @@ from datetime import datetime, time
 import streamlit as st
 
 from lib.auth import current_user, require_login
+from lib.geo import km_to_miles
 from lib.queries import (
     create_booking_request,
     fetch_listing,
@@ -11,8 +12,10 @@ from lib.queries import (
     time_ago,
 )
 from lib.supabase_client import get_client
+from lib.ui import apply_theme
 
 st.set_page_config(page_title="Listing · LocalServe", page_icon="🧰", layout="wide")
+apply_theme()
 
 db = get_client()
 listing_id = st.session_state.get("selected_listing_id")
@@ -49,7 +52,7 @@ with col2:
     st.markdown(f"### :green[{price_label(listing)}]")
     st.caption(
         f"Posted {time_ago(listing['created_at'])} · serves within "
-        f"{listing.get('service_radius_km', 25)} km"
+        f"{km_to_miles(listing.get('service_radius_km', 25))} mi"
     )
 
     provider = listing.get("provider") or {}

@@ -1,10 +1,13 @@
 import streamlit as st
 
-from lib.auth import current_profile, current_user, require_login, sign_out
+from lib.auth import current_profile, current_user, sign_out
+from lib.geo import lookup_zip, miles_to_km
 from lib.queries import fetch_categories, fetch_listings, price_label, time_ago
 from lib.supabase_client import get_client
+from lib.ui import apply_theme, hero
 
 st.set_page_config(page_title="LocalServe", page_icon="🧰", layout="wide")
+apply_theme()
 
 with st.sidebar:
     st.title("🧰 LocalServe")
@@ -19,8 +22,10 @@ with st.sidebar:
     else:
         st.info("Browsing as a guest. Sign in from the **Account** page to message providers or book services.")
 
-st.title("Local services near you")
-st.caption("Detailing, handyman, mobile mechanic and more — from people in your area.")
+hero(
+    "Local services near you",
+    "Detailing, handyman, mobile mechanic and more — from people in your area.",
+)
 
 db = get_client()
 categories = fetch_categories(db)
@@ -28,32 +33,42 @@ cat_by_label = {"All categories": None}
 for c in categories:
     cat_by_label[f"{c['icon']} {c['name']}"] = c["id"]
 
-col1, col2, col3 = st.columns([3, 2, 1])
-with col1:
-    query = st.text_input("Search", placeholder="Search services…", label_visibility="collapsed")
-with col2:
-    label = st.selectbox("Category", list(cat_by_label.keys()), label_visibility="collapsed")
-with col3:
-    near_me = st.toggle("📍 Near me")
+RADIUS_CHOICES = [10, 25, 50, 100]
 
-lat = lng = None
-if near_me:
-    st.caption("Enter your approximate location (Streamlit can't read browser GPS).")
-    loc_col1, loc_col2, loc_col3 = st.columns(3)
-    lat = loc_col1.number_input("Latitude", value=0.0, format="%.5f")
-    lng = loc_col2.number_input("Longitude", value=0.0, format="%.5f")
-    radius = loc_col3.number_input("Radius (km)", value=40, min_value=1, max_value=300)
-else:
-    radius = 40
+# --- Filter bar -----------------------------------------------------------
+col1, col2, col3, col4 = st.columns([4, 3, 2, 2])
+query = col1.text_input("Search", placeholder="🔍  Search services…", label_visibility="collapsed")
+label = col2.selectbox("Category", list(cat_by_label.keys()), label_visibility="collapsed")
+zip_code = col3.text_input(
+    "ZIP", placeholder="ZIP code", label_visibility="collapsed", max_chars=10
+)
+radius_mi = col4.selectbox(
+    "Radius",
+    RADIUS_CHOICES,
+    index=1,
+    format_func=lambda m: f"within {m} mi",
+    label_visibility="collapsed",
+    disabled=not zip_code.strip(),
+)
+
+# Turn the ZIP into coordinates for the geo search. Empty ZIP → browse all.
+place = lookup_zip(zip_code) if zip_code.strip() else None
+if zip_code.strip():
+    if place:
+        st.caption(f"📍 Showing services within {radius_mi} mi of {place.label} ({zip_code.strip()})")
+    else:
+        st.caption(f"⚠️ Couldn't find ZIP “{zip_code.strip()}” — showing all listings instead.")
 
 listings = fetch_listings(
     db,
     category_id=cat_by_label[label],
     query=query or None,
-    lat=lat if near_me and lat else None,
-    lng=lng if near_me and lng else None,
-    radius_km=radius,
+    lat=place.lat if place else None,
+    lng=place.lng if place else None,
+    radius_km=miles_to_km(radius_mi),
 )
+
+st.write("")  # small breathing room above the grid
 
 if not listings:
     st.info("No services found. Try a different search, or post the first one from **Post a Service**.")

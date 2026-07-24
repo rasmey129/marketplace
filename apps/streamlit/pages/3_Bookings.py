@@ -3,8 +3,10 @@ import streamlit as st
 from lib.auth import current_user, require_login
 from lib.queries import fetch_bookings, update_booking_status
 from lib.supabase_client import get_client
+from lib.ui import apply_theme
 
 st.set_page_config(page_title="Bookings · LocalServe", page_icon="📅", layout="wide")
+apply_theme()
 st.title("📅 Bookings")
 
 if not require_login("to view your bookings"):

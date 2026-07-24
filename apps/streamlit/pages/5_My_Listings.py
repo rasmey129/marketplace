@@ -3,8 +3,10 @@ import streamlit as st
 from lib.auth import current_user, require_login
 from lib.queries import fetch_my_listings, price_label, set_listing_status
 from lib.supabase_client import get_client
+from lib.ui import apply_theme
 
 st.set_page_config(page_title="My Listings · LocalServe", page_icon="🗂️", layout="wide")
+apply_theme()
 st.title("🗂️ My listings")
 
 if not require_login("to manage your listings"):

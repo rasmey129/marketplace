@@ -1,3 +1,4 @@
 streamlit>=1.38
 supabase>=2.9
 python-dotenv>=1.0
+pgeocode>=0.5

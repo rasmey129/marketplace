@@ -3,8 +3,10 @@ import streamlit as st
 from lib.auth import current_user, require_login
 from lib.queries import fetch_conversations, fetch_messages, send_message, time_ago
 from lib.supabase_client import get_client
+from lib.ui import apply_theme
 
 st.set_page_config(page_title="Messages · LocalServe", page_icon="💬", layout="wide")
+apply_theme()
 st.title("💬 Messages")
 
 if not require_login("to view your messages"):

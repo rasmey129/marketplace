@@ -3,8 +3,10 @@ import streamlit as st
 from lib.auth import current_profile, current_user, refresh_profile, require_login, sign_out
 from lib.queries import update_profile
 from lib.supabase_client import get_client
+from lib.ui import apply_theme
 
 st.set_page_config(page_title="Account · LocalServe", page_icon="👤", layout="centered")
+apply_theme()
 st.title("👤 Account")
 
 if not require_login():
